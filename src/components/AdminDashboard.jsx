@@ -29,8 +29,10 @@ export default function AdminDashboard() {
     <AdminShell>
       <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div>
-          <p style={{ color: "#B29EA6" }} className="text-xs mb-1">Tuesday, 21 July 2026</p>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", color: "#F7EFF1" }} className="text-xl sm:text-2xl">Good morning, Beryl</h1>
+          <p style={{ color: "#B29EA6" }} className="text-xs mb-1">
+            {new Date().toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          </p>
+          <h1 style={{ fontFamily: "'Playfair Display', serif", color: "#F7EFF1" }} className="text-xl sm:text-2xl">How's it going, Beryl?</h1>
         </div>
         <div style={{ background: "#332529" }} className="w-10 h-10 rounded-full flex items-center justify-center shrink-0">
           <UserRound size={17} color="#F7DDE6" />

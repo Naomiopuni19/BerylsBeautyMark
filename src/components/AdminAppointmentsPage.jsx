@@ -33,7 +33,7 @@ export default function AdminAppointmentsPage() {
     setLoadError("");
     const { data, error } = await supabase
       .from("appointments")
-      .select("*, services(name), profiles(full_name, phone)")
+     .select("*, services(name), profiles!customer_id(full_name, phone)")
       .order("appointment_date", { ascending: true });
     if (error) {
       setLoadError(error.message);

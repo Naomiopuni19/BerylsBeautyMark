@@ -167,6 +167,7 @@ export default function BookingPage() {
       time_slot: toPostgresTime(time),
       payment_method: payment,
       estimated_price: service.priceMin,
+      notes: form.notes || null,
     });
 
     setSubmitting(false);

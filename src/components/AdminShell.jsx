@@ -11,15 +11,15 @@ import NotificationBell from "./NotificationBell";
 const sidebarItems = [
   { icon: LayoutGrid, label: "Dashboard", to: "/admin" },
   { icon: Calendar, label: "Appointments", to: "/admin/appointments" },
-  { icon: Scissors, label: "Services", to: null },
-  { icon: Package, label: "Products", to: null },
-  { icon: Boxes, label: "Inventory", to: null },
-  { icon: ClipboardList, label: "Orders", to: null },
+  { icon: Scissors, label: "Services", to: "/admin/services" },
+  { icon: Package, label: "Products", to: "/admin/products" },
+  { icon: Boxes, label: "Inventory", to: "/admin/inventory" },
+  { icon: ClipboardList, label: "Orders", to: "/admin/orders" },
   { icon: ImageIcon, label: "Media library", to: "/admin/media" },
-  { icon: UserRound, label: "Customers", to: null },
-  { icon: CreditCard, label: "Payments", to: null },
-  { icon: BarChart3, label: "Analytics", to: null },
-  { icon: Settings, label: "Settings", to: null },
+  { icon: UserRound, label: "Customers", to: "/admin/customers" },
+  { icon: CreditCard, label: "Payments", to: "/admin/payments" },
+  { icon: BarChart3, label: "Analytics", to: "/admin/analytics" },
+  { icon: Settings, label: "Settings", to: "/admin/settings" },
 ];
 
 function SidebarLinks({ pathname, onNavigate }) {

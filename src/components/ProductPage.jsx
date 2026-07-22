@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, Star, Heart, Package, Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 import { useProducts } from "../hooks/useProducts";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabaseClient";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -11,6 +13,9 @@ export default function ProductPage() {
   const [tab, setTab] = useState("description");
   const [wishlisted, setWishlisted] = useState(false);
   const { addItem } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [notified, setNotified] = useState(false);
   const [added, setAdded] = useState(false);
 
   if (loading) {
@@ -31,6 +36,22 @@ export default function ProductPage() {
   }
 
   const outOfStock = product.stock === 0;
+
+  const notifyMe = async () => {
+    if (!user) {
+      navigate("/login", { state: { from: { pathname: `/product/${product.id}` } } });
+      return;
+    }
+    await supabase.from("notifications").insert({
+      audience: "admin",
+      type: "stock",
+      title: "Restock request",
+      body: `${user.fullName || "A customer"} wants to know when ${product.name} is back in stock.`,
+      link: "/admin",
+    });
+    setNotified(true);
+    setTimeout(() => setNotified(false), 3000);
+  };
   const related = products.filter((p) => p.id !== product.id).slice(0, 4);
 
   return (
@@ -87,16 +108,15 @@ export default function ProductPage() {
             </div>
 
             <button
-              disabled={outOfStock}
-              onClick={() => { addItem(product, qty); setAdded(true); setTimeout(() => setAdded(false), 2000); }}
+              onClick={() => (outOfStock ? notifyMe() : (() => { addItem(product, qty); setAdded(true); setTimeout(() => setAdded(false), 2000); })())}
               style={{
                 background: outOfStock ? "#F0EBEC" : "linear-gradient(135deg,#D98BA3,#C2698A)",
-                color: outOfStock ? "#A6949A" : "#FFF9FB",
+                color: outOfStock ? "#8A757C" : "#FFF9FB",
                 fontFamily: "'Poppins', sans-serif",
               }}
               className="w-full sm:w-auto px-10 py-3.5 rounded-full text-sm font-semibold mb-2"
             >
-              {outOfStock ? "Notify me when back in stock" : "Add to cart"}
+              {outOfStock ? (notified ? "We'll let you know" : "Notify me when back in stock") : "Add to cart"}
             </button>
             {added && (
               <p style={{ color: "#3E7D5A", fontFamily: "'Poppins', sans-serif" }} className="text-xs mb-4">Added to your cart</p>

@@ -26,6 +26,15 @@ import PortalDashboard from "./components/portal/PortalDashboard";
 import MyAppointmentsPage from "./components/portal/MyAppointmentsPage";
 import MyOrdersPage from "./components/portal/MyOrdersPage";
 import ProfilePage from "./components/portal/ProfilePage";
+import AdminServicesPage from "./components/AdminServicesPage";
+import AdminProductsPage from "./components/AdminProductsPage";
+import AdminOrdersPage from "./components/AdminOrdersPage";
+import AdminInventoryPage from "./components/AdminInventoryPage";
+import AdminCustomersPage from "./components/AdminCustomersPage";
+import AdminPaymentsPage from "./components/AdminPaymentsPage";
+import AdminAnalyticsPage from "./components/AdminAnalyticsPage";
+import AdminSettingsPage from "./components/AdminSettingsPage";
+
 
 export default function App() {
   return (
@@ -56,8 +65,19 @@ export default function App() {
       </Route>
 
       <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+      <Route path="/admin/analytics" element={<RequireAdmin><AdminAnalyticsPage /></RequireAdmin>} />
+      <Route path="/admin/services" element={<RequireAdmin><AdminServicesPage /></RequireAdmin>} />
       <Route path="/admin/media" element={<RequireAdmin><MediaLibrary /></RequireAdmin>} />
+      <Route path="/admin/settings" element={<RequireAdmin><AdminSettingsPage /></RequireAdmin>} />
+      <Route path="/admin/payments" element={<RequireAdmin><AdminPaymentsPage /></RequireAdmin>} />
+      <Route path="/admin/customers" element={<RequireAdmin><AdminCustomersPage /></RequireAdmin>} />
+      <Route path="/admin/inventory" element={<RequireAdmin><AdminInventoryPage /></RequireAdmin>} />
+      <Route path="/admin/orders" element={<RequireAdmin><AdminOrdersPage /></RequireAdmin>} />
+      <Route path="/admin/products" element={<RequireAdmin><AdminProductsPage /></RequireAdmin>} />
       <Route path="/admin/appointments" element={<RequireAdmin><AdminAppointmentsPage /></RequireAdmin>} />
     </Routes>
+    
+
+    
   );
 }

@@ -26,23 +26,38 @@ export function useNotifications() {
     const { data } = await query;
     setNotifications(data || []);
     setLoading(false);
-  }, [user]);
+  }, [user?.id, user?.role]);
 
   useEffect(() => {
+    if (!user?.id) {
+      setNotifications([]);
+      setLoading(false);
+      return;
+    }
+
     fetchNotifications();
-    if (!user) return;
 
-    const channel = supabase
-      .channel("notifications-" + user.id)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications" }, () => {
+    // 1. Create channel instance
+    const channelName = `notifs-${user.id}-${Math.random().toString(36).substring(2, 9)}`;
+    const channel = supabase.channel(channelName);
+
+    // 2. Attach .on listener BEFORE subscribe
+    channel.on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "notifications" },
+      () => {
         fetchNotifications();
-      })
-      .subscribe();
+      }
+    );
 
+    // 3. Subscribe separately
+    channel.subscribe();
+
+    // 4. Clean up channel on unmount or re-render
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, fetchNotifications]);
+  }, [user?.id, fetchNotifications]);
 
   const markRead = async (id) => {
     setNotifications((n) => n.map((x) => (x.id === id ? { ...x, read: true } : x)));

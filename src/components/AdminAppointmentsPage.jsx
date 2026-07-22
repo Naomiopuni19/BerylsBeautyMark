@@ -23,17 +23,24 @@ export default function AdminAppointmentsPage() {
   const [tab, setTab] = useState("Pending");
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [rejectingId, setRejectingId] = useState(null);
   const [reason, setReason] = useState("");
   const [busyId, setBusyId] = useState(null);
 
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase
+    setLoadError("");
+    const { data, error } = await supabase
       .from("appointments")
       .select("*, services(name), profiles(full_name, phone)")
       .order("appointment_date", { ascending: true });
-    setAppointments(data || []);
+    if (error) {
+      setLoadError(error.message);
+      setAppointments([]);
+    } else {
+      setAppointments(data || []);
+    }
     setLoading(false);
   }, []);
 
@@ -107,6 +114,11 @@ export default function AdminAppointmentsPage() {
 
       {loading ? (
         <p style={{ color: "#8A757C" }} className="text-sm py-10 text-center">Loading appointments...</p>
+      ) : loadError ? (
+        <div style={{ background: "rgba(227,139,154,0.12)", border: "1px solid rgba(227,139,154,0.3)" }} className="rounded-2xl p-6 text-center">
+          <p style={{ color: "#E8B4BE" }} className="text-sm font-medium mb-1">Could not load appointments</p>
+          <p style={{ color: "#E8B4BE" }} className="text-xs">{loadError}</p>
+        </div>
       ) : filtered.length === 0 ? (
         <div style={{ background: "#2E2126", border: "1px solid rgba(255,255,255,0.06)" }} className="rounded-2xl p-10 text-center">
           <p style={{ color: "#8A757C" }} className="text-sm">Nothing here right now.</p>
@@ -140,6 +152,13 @@ export default function AdminAppointmentsPage() {
                   </span>
                   <span style={{ color: "#D6B56E" }} className="text-xs font-semibold">GHC {a.estimated_price} plus</span>
                 </div>
+
+                {a.notes && (
+                  <div style={{ background: "#241A20", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-xl p-3 mb-3">
+                    <p style={{ color: "#8A757C" }} className="text-[10px] uppercase tracking-wide font-semibold mb-1">Note from client</p>
+                    <p style={{ color: "#D9CFD2" }} className="text-xs leading-relaxed">{a.notes}</p>
+                  </div>
+                )}
 
                 {a.status === "rejected" && a.rejection_reason && (
                   <p style={{ color: "#B29EA6" }} className="text-xs mb-3 italic">Reason given: {a.rejection_reason}</p>

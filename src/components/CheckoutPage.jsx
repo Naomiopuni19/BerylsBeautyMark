@@ -26,7 +26,15 @@ export default function CheckoutPage() {
 
     const { data: order, error: orderError } = await supabase
       .from("orders")
-      .insert({ customer_id: user.id, status: "pending", total_amount: total })
+      .insert({
+        customer_id: user.id,
+        status: "pending",
+        total_amount: total,
+        shipping_name: form.name,
+        shipping_phone: form.phone,
+        shipping_address: form.address,
+        shipping_city: form.city,
+      })
       .select()
       .single();
 

@@ -9,6 +9,7 @@ import { useServices } from "../hooks/useServices";
 import { useProducts } from "../hooks/useProducts";
 import { useHeroSlides } from "../hooks/useHeroSlides";
 import { useApprovedReviews } from "../hooks/useApprovedReviews";
+import { useBusinessSettings } from "../hooks/useBusinessSettings";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabaseClient";
@@ -386,6 +387,7 @@ function PhotoReviewSection() {
 
 export default function SiteView() {
   const [wishlist, setWishlist] = useState({});
+  const [notifiedId, setNotifiedId] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
@@ -393,6 +395,23 @@ export default function SiteView() {
   const { services } = useServices();
   const { products } = useProducts();
   const { user } = useAuth();
+  const { settings: businessSettings } = useBusinessSettings();
+
+  const notifyMe = async (product) => {
+    if (!user) {
+      navigate("/login", { state: { from: { pathname: "/" } } });
+      return;
+    }
+    await supabase.from("notifications").insert({
+      audience: "admin",
+      type: "stock",
+      title: "Restock request",
+      body: `${user.fullName || "A customer"} wants to know when ${product.name} is back in stock.`,
+      link: "/admin",
+    });
+    setNotifiedId(product.id);
+    setTimeout(() => setNotifiedId(""), 3000);
+  };
 
   const navLinks = [
     { label: "Home", to: "/" },
@@ -597,12 +616,9 @@ export default function SiteView() {
 
       <section id="shop" style={{ background: "#FFF9FB" }} className="py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-10">
-          <div className="flex flex-wrap items-end justify-between gap-6 mb-4">
-            <div>
-              <Eyebrow>The shop</Eyebrow>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", color: "#3B2E36" }} className="text-4xl">Take the studio home</h2>
-            </div>
-            <GhostButton>Visit shop <ChevronRight size={16} /></GhostButton>
+          <div className="mb-4">
+            <Eyebrow>The shop</Eyebrow>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", color: "#3B2E36" }} className="text-4xl">Take the studio home</h2>
           </div>
           <GoldDivider />
           <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-5 mt-8">
@@ -636,15 +652,15 @@ export default function SiteView() {
                     <Link to={`/product/${p.id}`} style={{ fontFamily: "'Playfair Display', serif", color: "#3B2E36" }} className="text-sm mb-2 block hover:underline">{p.name}</Link>
                     <div className="flex items-center justify-between">
                       <span style={{ color: "#3B2E36", fontFamily: "'Poppins', sans-serif" }} className="text-sm font-semibold">GHC {p.price}</span>
-                      <button disabled={outOfStock}
-                              onClick={() => addItem(p)}
+                      <button
+                              onClick={() => (outOfStock ? notifyMe(p) : addItem(p))}
                               style={{
                                 background: outOfStock ? "#F0EBEC" : "#C2698A",
-                                color: outOfStock ? "#A6949A" : "#FFFFFF",
+                                color: outOfStock ? "#8A757C" : "#FFFFFF",
                                 fontFamily: "'Poppins', sans-serif",
                               }}
                               className="text-[11px] font-semibold px-3 py-1.5 rounded-full">
-                        {outOfStock ? "Notify me" : "Add"}
+                        {outOfStock ? (notifiedId === p.id ? "We'll let you know" : "Notify me") : "Add"}
                       </button>
                     </div>
                   </div>
@@ -666,8 +682,8 @@ export default function SiteView() {
       </section>
 
       <footer style={{ background: "#3B2E36", color: "#F2E7EA" }} className="pt-16 pb-8">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-          <div>
+        <div className="max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 mb-12">
+          <div className="col-span-2 lg:col-span-1">
             <div className="flex items-center gap-3 mb-4">
               <div style={{ background: "linear-gradient(135deg,#D98BA3,#C2698A)" }} className="w-14 h-14 rounded-full flex items-center justify-center shrink-0">
                 <Sparkles size={22} color="#FFF9FB" />
@@ -678,7 +694,7 @@ export default function SiteView() {
               </div>
             </div>
             <p style={{ fontFamily: "'Poppins', sans-serif", color: "#C7B4BB" }} className="text-sm leading-relaxed mb-5">
-              A luxury hair and beauty studio dedicated to making you look and feel your absolute best.
+              {businessSettings.tagline}
             </p>
             <div className="flex gap-3">
               <a href="#" aria-label="Instagram" style={{ background: "rgba(255,255,255,0.08)" }} className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"><Instagram size={15} /></a>
@@ -722,33 +738,34 @@ export default function SiteView() {
             ))}
           </div>
 
-          <div style={{ fontFamily: "'Poppins', sans-serif" }}>
+          <div style={{ fontFamily: "'Poppins', sans-serif" }} className="col-span-2 lg:col-span-1">
             <p style={{ fontFamily: "'Playfair Display', serif" }} className="text-lg mb-4">Get in Touch</p>
             <div className="flex items-start gap-2.5 mb-3">
               <MapPin size={15} color="#D98BA3" className="mt-0.5 shrink-0" />
-              <span style={{ color: "#C7B4BB" }} className="text-sm">Ayeduase KNUST, Kumasi Ghana</span>
+              <span style={{ color: "#C7B4BB" }} className="text-sm">{businessSettings.address}</span>
             </div>
-            <a href="tel:+233240000000" className="flex items-center gap-2.5 mb-3 w-fit">
+            <a href={`tel:${businessSettings.phone?.replace(/\s/g, "")}`} className="flex items-center gap-2.5 mb-3 w-fit">
               <Phone size={15} color="#D98BA3" className="shrink-0" />
-              <span style={{ color: "#C7B4BB" }} className="text-sm hover:text-white transition-colors">+233 24 000 0000</span>
+              <span style={{ color: "#C7B4BB" }} className="text-sm hover:text-white transition-colors">{businessSettings.phone}</span>
             </a>
-            <a href="mailto:hello@berylsbeautymark.com" className="flex items-center gap-2.5 mb-4 w-fit">
+            <a href={`mailto:${businessSettings.email}`} className="flex items-center gap-2.5 mb-4 w-fit">
               <Mail size={15} color="#D98BA3" className="shrink-0" />
-              <span style={{ color: "#C7B4BB" }} className="text-sm hover:text-white transition-colors">hello@berylsbeautymark.com</span>
+              <span style={{ color: "#C7B4BB" }} className="text-sm hover:text-white transition-colors">{businessSettings.email}</span>
             </a>
             <div style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }} className="rounded-xl p-4">
               <p style={{ color: "#F2E7EA" }} className="text-xs font-semibold mb-1.5">Opening hours</p>
-              <p style={{ color: "#C7B4BB" }} className="text-xs mb-1">Mon to Sat, 9:00 AM to 7:00 PM</p>
-              <p style={{ color: "#8F7C84" }} className="text-xs">Sunday, by appointment only</p>
+              <p style={{ color: "#C7B4BB" }} className="text-xs mb-1">{businessSettings.hours_weekday}</p>
+              <p style={{ color: "#8F7C84" }} className="text-xs">Sunday, {businessSettings.hours_sunday}</p>
             </div>
           </div>
         </div>
-        <div style={{ borderColor: "rgba(255,255,255,0.1)", fontFamily: "'Poppins', sans-serif", color: "#9A868D" }} className="border-t pt-6 max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs">
+        <div style={{ borderColor: "rgba(255,255,255,0.1)", fontFamily: "'Poppins', sans-serif", color: "#9A868D" }} className="border-t pt-6 pb-4 max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-xs">
           <span>Beryl's Beauty Mark. All rights reserved.</span>
           <span className="hidden sm:inline">•</span>
           <Link to="/admin/login" style={{ color: "#D6B56E" }} className="hover:text-white transition-colors font-medium">Staff portal</Link>
         </div>
       </footer>
+      <div className="lg:hidden" style={{ height: "78px" }} />
 
       {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} />}
     </div>

@@ -10,6 +10,7 @@ import { useProducts } from "../hooks/useProducts";
 import { useHeroSlides } from "../hooks/useHeroSlides";
 import { useGallery } from "../hooks/useGallery";
 import { serviceCategories } from "../lib/data";
+import { sanitizeFileName } from "../lib/sanitizeFileName";
 
 const destinations = [
   { key: "hero", label: "Hero banner", icon: LayoutTemplate },
@@ -20,7 +21,7 @@ const destinations = [
 ];
 
 async function uploadToStorage(file, folder) {
-  const path = `${folder}/${Date.now()}-${file.name}`;
+  const path = `${folder}/${Date.now()}-${sanitizeFileName(file.name)}`;
   const { error } = await supabase.storage.from("salon-media").upload(path, file);
   if (error) throw error;
   const { data } = supabase.storage.from("salon-media").getPublicUrl(path);

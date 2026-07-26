@@ -13,6 +13,7 @@ import { useBusinessSettings } from "../hooks/useBusinessSettings";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { supabase } from "../lib/supabaseClient";
+import { sanitizeFileName } from "../lib/sanitizeFileName";
 import NotificationBell from "./NotificationBell";
 import SearchModal from "./SearchModal";
 
@@ -224,7 +225,8 @@ function PhotoReviewSection() {
     setSubmitting(true);
     setError("");
 
-    const path = `reviews/${user.id}-${Date.now()}-${file.name}`;
+    const path = `reviews/${user.id}-${Date.now()}-${sanitizeFileName(file.name)}`;
+
     const { error: uploadError } = await supabase.storage.from("salon-media").upload(path, file);
 
     if (uploadError) {
